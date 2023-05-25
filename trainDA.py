@@ -38,7 +38,7 @@ def compute_paired_dist(A, B):
     dist=F.cosine_similarity(A_expand,B_expand,dim=2)
     return dist
 if __name__ == '__main__':
-    gpu_id="1"
+    gpu_id="0"
     # gpu_id = '1'
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu_id
     opt = TrainOptions().parse(save=False,gpu=gpu_id)
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     opt.model_type='HLCDNetSBN2'
     cfg.DA.NUM_DOMAINS_BN = 2
     ttest=False
-    name = opt.dset + 'DAmmdnew2DAComapre/' + opt.model_type + '_load_CE_Coral_S-G'  # '_CE_IN_PreRest_noweightC_PCE',noload!
+    name = opt.dset + 'DAmmdnew2DAComapre/' + opt.model_type + '_load_CE_sample_coral_W_STp_kernal_G-L'  # '_CE_IN_PreRest_noweightC_PCE',noload!
     cfg.TRAINLOG.EXCEL_LOGSheet = ['wsT-G', 'wsT-L', 'wsTr', 'wsVal']
     lrWeight = [.5, .5, 1, 1]
     opt.LChannel = True
@@ -66,10 +66,10 @@ if __name__ == '__main__':
     cfg.DA.T = opt.t
     if opt.dset == 'CD_DA_building':
         # cfg.TRAINLOG.DATA_NAMES = ['SYSU_CD', 'LEVIR_CDPatch', 'GZ_CDPatch']
-        cfg.TRAINLOG.DATA_NAMES = ['SYSU_CD', 'GZ_CDPatch']
+        cfg.TRAINLOG.DATA_NAMES = ['GZ_CDPatch', 'LEVIR_CDPatch']
     saveroot = None
-    saveroot = './log/CD_DA_buildingBase/M2CE_CE/20230426-18_59_SYSU_CD-LEVIR/'  # HLCD//savemodel/
-    save_path = saveroot + '/savemodel/_11_acc-0.8512_chgAcc-0.7611_unchgAcc-0.8534.pth'
+    saveroot = './log/CD_DA_buildingBase/M2CE_CE/20230428-23_32_GZ_CDPatch-LEVIR_CDPatch'  # HLCD/
+    save_path = saveroot + '/savemodel/_31_acc-0.9669_chgAcc-0.3722_unchgAcc-0.9814.pth'
     # saveroot = './log/HLCDNetSBN2/HLCDNetSBN2_load_IN18_PreRest_noIterC_no2BNSL/20230412-23_10_SYSU_CD/'
     # save_path = saveroot + '/savemodel/_29_acc-0.8944_chgAcc-0.6442_unchgAcc-0.9005.pth'
     # saveroot = './log/HLCDNetSBN2/HLCDNetSBN2_load_INCE_PreRest_noIterC_no2BNSL/20230412-19_34_SYSU_CD/'
@@ -385,122 +385,119 @@ if __name__ == '__main__':
             # cd_predTo = torch.argmax(cd_predT[0].detach(), dim=1)
             preTS=F.softmax(preT,dim=1)
             cd_predTo = torch.argmax(preTS.detach(), dim=1)
-            # # centerCur = tool.getCenterS2(cd_predS, labelS.long(), DEVICE)
-            # # lossuc=(1/(F.cosine_similarity(centerCur[0],centerCur[1]))).mean()
-            # # #####Center
+            # centerCur = tool.getCenterS2(cd_predS, labelS.long(), DEVICE)
+            # lossuc=(1/(F.cosine_similarity(centerCur[0],centerCur[1]))).mean()
+            # #####Center
             DA=True
             if DA:
-            #     # centersIterT, pseudo_labels, CdistTarget = tool.CenterTOpEXmc(defeat3T, Center, 2, 2
-            #     #                                                               , varflag=False, unchgN=unchgN, chgN=chgN,iterC=False)
-            #     preT = preT.reshape(preT.shape[0], preT.shape[1], -1)
-            #     labelT=labelT.reshape(labelT.shape[0],-1)
-            #     # reshapePreTSoftmax = F.softmax(preT,dim=1)
-            #     preT = F.log_softmax(preT, dim=1)
-            #     # reshapePreTSoftmaxout = reshapePreTSoftmax.permute(0, 2, 1)
-            #     # reshapePreTSoftmaxout = (reshapePreTSoftmaxout * pseudo_labels[1]).sum(2)
-            #     pt=0.9-epoch/50
-            #     # pt=0
-            #     source_chg_flatten_select, source_unchg_flatten_select, target_chg_flatten_select, target_unchg_flatten_select, s_label_select, t_label_select, _, softLog = \
-            #         selectF.select_featureST(defeat3S, labelS, defeat3T, cd_predTo.squeeze(0),
-            #                                  preTS, [preS, preT], p=pt, device=DEVICE)
-            #     feats_toalign_S = [torch.cat([source_unchg_flatten_select, source_chg_flatten_select], dim=0).to(DEVICE)]
-            #     # feats_toalign_S.append(s_label_select)
-            #     feats_toalign_T = [torch.cat([target_unchg_flatten_select, target_chg_flatten_select], dim=0).to(DEVICE)]
-            #     # feats_toalign_T.append(t_label_select)
-            #
-            #     preTen = cd_predT[0].reshape(-1, cd_predT[0].shape[1])
-            #     preTen = F.softmax(preTen,dim=1)
-            #     # ent_loss = torch.mean(tool.entropy(preTen,1))  # 最小熵
-            #     [entropyunchg, entropychg] = (tool.entropy(preTen, 1))  # 最小熵
-            #     ent_loss = torch.mean(entropyunchg + entropychg)  # 最小熵
-            #     # if True:
-            #     #     msoftmax = preTen.mean(dim=0)
-            #     #     ent_loss -= torch.sum(-msoftmax * torch.log(msoftmax + 1e-5))
-            #
-            #     if feats_toalign_S[0].shape[0]>selectF.chgthreshold*2*0.9 and feats_toalign_T[0].shape[0]>selectF.unchgthreshold*2*0.9 and selectF.chgNum==selectF.unchgNum:
-            #         if ratio < 0.7:
-            #             a=0
-            #         else:
-            #             a=1
-            #         # source_nums_cls = torch.tensor([selectF.umchgNum, selectF.chgNum], dtype=torch.int32).to(DEVICE)
-            #         mmd_loss = mmd.forward(feats_toalign_S, feats_toalign_T,s_label_select,t_label_select)['mmd']
-            #         coral_loss_value = coral_loss.CORAL(cd_predS[1], cd_predT[1])
-            #         # ent_loss = torch.mean(tool.entropy(feats_toalign_T[0]))  # 最小熵
-            #         pseudoCE = mmd_loss + coral_loss_value+a*ent_loss
-            #         Score = {'CEL': CELoss, 'DAlow': mmd_loss.item(), 'FeatL': (ent_loss).item(), 'Cd': selectF.unchgNum/100+1,
-            #                  'c':mmd.maxc.item(),'u':mmd.maxu.item()}
-            #         mNum=mNum+1
-            #
-            #
-            #     else:
-            #
-            #         if ratio<0.7:
-            #             pe = 0.1
-            #             unchgP = preTS[:, 0, :, :].unsqueeze(1)
-            #             chgP = preTS[:, 1,:,:].unsqueeze(1)+ pe
-            #             # if ones is None:
-            #             #     ones = torch.ones_like(chgP).to(DEVICE).float()
-            #             #     zeros= torch.zeros_like(unchgP).to(DEVICE).float()
-            #             #
-            #             # unchgP = torch.where(unchgP <0, zeros, unchgP)
-            #             # chgP = torch.where(chgP > 1, ones, chgP)
-            #
-            #             reshapePreTSoftmaxth = torch.cat([unchgP,chgP], dim=1)
-            #
-            #             source_chg_flatten_select, source_unchg_flatten_select, target_chg_flatten_select, target_unchg_flatten_select, s_label_select,_,t_label_select, softLog = \
-            #                 selectF.select_featureST(defeat3S, labelS, defeat3T, cd_predTo.squeeze(0),
-            #                                          reshapePreTSoftmaxth, [preS, preT], p=pt, pe=pe, device=DEVICE)
-            #
-            #             Puuu = (preTS[:, 0, :, :]* (1 - cd_predTo)).unsqueeze(1)
-            #             Pccc = preTS[:, 1, :, :] * (cd_predTo).unsqueeze(1)
-            #             P=torch.cat([Puuu,Pccc],dim=1)
-            #             [entropyunchg,entropychg] = (tool.entropy(P, 1))  # 最小熵
-            #             ent_loss = 0.1*entropyunchg.sum() / ((1 - cd_predTo).sum() + 1) + entropychg.sum() / (
-            #                         cd_predTo.sum() + 1)
-            #
-            #             # ent_loss = torch.mean(tool.entropy(reshapePreTSoftmaxth, 1))  # 最小熵
-            #             a=0
-            #             # a=1
-            #         else:
-            #             pe = 0.1
-            #             reshapePreTSoftmaxth = torch.cat(
-            #                 [preTS[:, 0, :, :].unsqueeze(1), preTS[:, 1, :, :].unsqueeze(1) + pe], dim=1)
-            #
-            #             source_chg_flatten_select, source_unchg_flatten_select, target_chg_flatten_select, target_unchg_flatten_select, s_label_select, t_label_select, _, softLog = \
-            #                 selectF.select_featureST(defeat3S, labelS, defeat3T, cd_predTo.squeeze(0),
-            #                                          reshapePreTSoftmaxth, [preS, preT], p=pt, pe=pe, device=DEVICE)
-            #
-            #             a=0.1
-            #             [entropyunchg, entropychg] = (tool.entropy(preTen, 1))  # 最小熵
-            #             ent_loss=torch.mean(entropyunchg+entropychg)  # 最小熵
-            #             # ent_loss = torch.mean(tool.entropy(preTen, 1))  # 最小熵
-            #
-            #
-            #         feats_toalign_S = [torch.cat([source_unchg_flatten_select, source_chg_flatten_select], dim=0).to(DEVICE)]
-            #         # feats_toalign_S.append(s_label_select)
-            #         feats_toalign_T = [torch.cat([target_unchg_flatten_select, target_chg_flatten_select], dim=0).to(DEVICE)]
-            #         if feats_toalign_S[0].shape[0] > 1 and feats_toalign_T[0].shape[0] > 1 and selectF.chgNum == selectF.unchgNum:
-            #             mmd_loss = mmd.forward(feats_toalign_S, feats_toalign_T, s_label_select, t_label_select)['mmd']
-            #             coral_loss_value = coral_loss.CORAL(cd_predS[1], cd_predT[1])
-            #
-            #             # ent_loss = torch.mean(tool.entropy(feats_toalign_T[0]))  # 最小熵
-            #             pseudoCE = mmd_loss + coral_loss_value+a*ent_loss
-            #             Score = {'CEL': CELoss, 'DAlow': mmd_loss.item(), 'FeatL': (coral_loss_value+ent_loss).item(), 'Cd': selectF.unchgNum / 100,
-            #                  'c': mmd.maxc.item(), 'u': mmd.maxu.item()}
-            #         else:
-            #
-            #             # ent_loss = torch.mean(tool.entropy(preTen,2))  # 最小熵
-            #             # if True:
-            #             #     msoftmax = preTen.mean(dim=0)
-            #             #     ent_loss -= torch.sum(-msoftmax * torch.log(msoftmax + 1e-5))
-            #         # print('\n chg :',selectF.chgNum,'unchg :',selectF.unchgNum)
-            #             mmd_loss=torch.Tensor(0).to(DEVICE)
-            #             coral_loss_value = coral_loss.CORAL(cd_predS[1], cd_predT[1])#noweight
-            #             pseudoCE = 0.1*(coral_loss_value+a*ent_loss)
-            #             Score = {'CEL': CELoss, 'DAlow': pseudoCE.item(), 'FeatL': coral_loss_value.item(), 'Cd': 0,'c': selectF.cc.item(), 'u': selectF.uu.item()}
-                coral_loss_value = coral_loss.CORAL(cd_predS[1], cd_predT[1])  # noweight
-                pseudoCE=coral_loss_value
-                Score = {'CEL': CELoss, 'DAlow': pseudoCE.item(), 'FeatL': coral_loss_value.item()}
+                # centersIterT, pseudo_labels, CdistTarget = tool.CenterTOpEXmc(defeat3T, Center, 2, 2
+                #                                                               , varflag=False, unchgN=unchgN, chgN=chgN,iterC=False)
+                preT = preT.reshape(preT.shape[0], preT.shape[1], -1)
+                labelT=labelT.reshape(labelT.shape[0],-1)
+                # reshapePreTSoftmax = F.softmax(preT,dim=1)
+                preT = F.log_softmax(preT, dim=1)
+                # reshapePreTSoftmaxout = reshapePreTSoftmax.permute(0, 2, 1)
+                # reshapePreTSoftmaxout = (reshapePreTSoftmaxout * pseudo_labels[1]).sum(2)
+                pt=0.9-epoch/50
+                # pt=0
+                source_chg_flatten_select, source_unchg_flatten_select, target_chg_flatten_select, target_unchg_flatten_select, s_label_select, t_label_select, _, softLog = \
+                    selectF.select_featureST(defeat3S, labelS, defeat3T, cd_predTo.squeeze(0),
+                                             preTS, [preS, preT], p=pt, device=DEVICE)
+                feats_toalign_S = [torch.cat([source_unchg_flatten_select, source_chg_flatten_select], dim=0).to(DEVICE)]
+                # feats_toalign_S.append(s_label_select)
+                feats_toalign_T = [torch.cat([target_unchg_flatten_select, target_chg_flatten_select], dim=0).to(DEVICE)]
+                # feats_toalign_T.append(t_label_select)
+
+                preTen = cd_predT[0].reshape(-1, cd_predT[0].shape[1])
+                preTen = F.softmax(preTen,dim=1)
+                # ent_loss = torch.mean(tool.entropy(preTen,1))  # 最小熵
+                [entropyunchg, entropychg] = (tool.entropy(preTen, 1))  # 最小熵
+                ent_loss = torch.mean(entropyunchg + entropychg)  # 最小熵
+                # if True:
+                #     msoftmax = preTen.mean(dim=0)
+                #     ent_loss -= torch.sum(-msoftmax * torch.log(msoftmax + 1e-5))
+
+                if feats_toalign_S[0].shape[0]>selectF.chgthreshold*2*0.9 and feats_toalign_T[0].shape[0]>selectF.unchgthreshold*2*0.9 and selectF.chgNum==selectF.unchgNum:
+                    if ratio < 0.7:
+                        a=0
+                    else:
+                        a=1
+                    # source_nums_cls = torch.tensor([selectF.umchgNum, selectF.chgNum], dtype=torch.int32).to(DEVICE)
+                    mmd_loss = mmd.forward(feats_toalign_S, feats_toalign_T,s_label_select,t_label_select)['mmd']
+                    coral_loss_value = coral_loss.CORAL(cd_predS[1], cd_predT[1])
+                    # ent_loss = torch.mean(tool.entropy(feats_toalign_T[0]))  # 最小熵
+                    pseudoCE = mmd_loss + coral_loss_value+a*ent_loss
+                    Score = {'CEL': CELoss, 'DAlow': mmd_loss.item(), 'FeatL': (ent_loss).item(), 'Cd': selectF.unchgNum/100+1,
+                             'c':mmd.maxc.item(),'u':mmd.maxu.item()}
+                    mNum=mNum+1
+
+
+                else:
+
+                    if ratio<0.7:
+                        pe = 0.1
+                        unchgP = preTS[:, 0, :, :].unsqueeze(1)
+                        chgP = preTS[:, 1,:,:].unsqueeze(1)+ pe
+                        # if ones is None:
+                        #     ones = torch.ones_like(chgP).to(DEVICE).float()
+                        #     zeros= torch.zeros_like(unchgP).to(DEVICE).float()
+                        #
+                        # unchgP = torch.where(unchgP <0, zeros, unchgP)
+                        # chgP = torch.where(chgP > 1, ones, chgP)
+
+                        reshapePreTSoftmaxth = torch.cat([unchgP,chgP], dim=1)
+
+                        source_chg_flatten_select, source_unchg_flatten_select, target_chg_flatten_select, target_unchg_flatten_select, s_label_select,_,t_label_select, softLog = \
+                            selectF.select_featureST(defeat3S, labelS, defeat3T, cd_predTo.squeeze(0),
+                                                     reshapePreTSoftmaxth, [preS, preT], p=pt, pe=pe, device=DEVICE)
+
+                        Puuu = (preTS[:, 0, :, :]* (1 - cd_predTo)).unsqueeze(1)
+                        Pccc = preTS[:, 1, :, :] * (cd_predTo).unsqueeze(1)
+                        P=torch.cat([Puuu,Pccc],dim=1)
+                        [entropyunchg,entropychg] = (tool.entropy(P, 1))  # 最小熵
+                        ent_loss = 0.1*entropyunchg.sum() / ((1 - cd_predTo).sum() + 1) + entropychg.sum() / (
+                                    cd_predTo.sum() + 1)
+
+                        # ent_loss = torch.mean(tool.entropy(reshapePreTSoftmaxth, 1))  # 最小熵
+                        a=0
+                        # a=1
+                    else:
+                        pe = 0.1
+                        reshapePreTSoftmaxth = torch.cat(
+                            [preTS[:, 0, :, :].unsqueeze(1), preTS[:, 1, :, :].unsqueeze(1) + pe], dim=1)
+
+                        source_chg_flatten_select, source_unchg_flatten_select, target_chg_flatten_select, target_unchg_flatten_select, s_label_select, t_label_select, _, softLog = \
+                            selectF.select_featureST(defeat3S, labelS, defeat3T, cd_predTo.squeeze(0),
+                                                     reshapePreTSoftmaxth, [preS, preT], p=pt, pe=pe, device=DEVICE)
+
+                        a=0.1
+                        [entropyunchg, entropychg] = (tool.entropy(preTen, 1))  # 最小熵
+                        ent_loss=torch.mean(entropyunchg+entropychg)  # 最小熵
+                        # ent_loss = torch.mean(tool.entropy(preTen, 1))  # 最小熵
+
+
+                    feats_toalign_S = [torch.cat([source_unchg_flatten_select, source_chg_flatten_select], dim=0).to(DEVICE)]
+                    # feats_toalign_S.append(s_label_select)
+                    feats_toalign_T = [torch.cat([target_unchg_flatten_select, target_chg_flatten_select], dim=0).to(DEVICE)]
+                    if feats_toalign_S[0].shape[0] > 1 and feats_toalign_T[0].shape[0] > 1 and selectF.chgNum == selectF.unchgNum:
+                        mmd_loss = mmd.forward(feats_toalign_S, feats_toalign_T, s_label_select, t_label_select)['mmd']
+                        coral_loss_value = coral_loss.CORAL(cd_predS[1], cd_predT[1])
+
+                        # ent_loss = torch.mean(tool.entropy(feats_toalign_T[0]))  # 最小熵
+                        pseudoCE = mmd_loss + coral_loss_value+a*ent_loss
+                        Score = {'CEL': CELoss, 'DAlow': mmd_loss.item(), 'FeatL': (coral_loss_value+ent_loss).item(), 'Cd': selectF.unchgNum / 100,
+                             'c': mmd.maxc.item(), 'u': mmd.maxu.item()}
+                    else:
+
+                        # ent_loss = torch.mean(tool.entropy(preTen,2))  # 最小熵
+                        # if True:
+                        #     msoftmax = preTen.mean(dim=0)
+                        #     ent_loss -= torch.sum(-msoftmax * torch.log(msoftmax + 1e-5))
+                    # print('\n chg :',selectF.chgNum,'unchg :',selectF.unchgNum)
+                        mmd_loss=torch.Tensor(0).to(DEVICE)
+                        coral_loss_value = coral_loss.CORAL(cd_predS[1], cd_predT[1])#noweight
+                        pseudoCE = 0.1*(coral_loss_value+a*ent_loss)
+                        Score = {'CEL': CELoss, 'DAlow': pseudoCE.item(), 'FeatL': coral_loss_value.item(), 'Cd': 0,'c': selectF.cc.item(), 'u': selectF.uu.item()}
                 # KMMD.forward(source_feats, target_feats)['mmd']
                 # pseudoCE = F.nll_loss(preT, cd_predTo[0].squeeze(0).long(),reduce=False)
                 # pseudoCE = tool.loss(cd_predT[0], labelTori.long())
